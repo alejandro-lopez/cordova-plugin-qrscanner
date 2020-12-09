@@ -1,46 +1,52 @@
-'use strict';
+'use strict'
 
-const gulp = require('gulp');
-const insert = require('gulp-insert');
-const fs= require('fs');
+const gulp = require('gulp')
+const insert = require('gulp-insert')
+const fs = require('fs')
 
-const remap = fs.readFileSync('src/common/src/cordova-remap.js', 'utf-8');
+const remap = fs.readFileSync('src/common/src/cordova-remap.js', 'utf-8')
 
-function webpack(config, callback){
-  const exec = require('child_process').exec;
+function webpack (config, callback) {
+  const exec = require('child_process').exec
   exec(__dirname + '/node_modules/.bin/webpack --config ' + config, (error, stdout, stderr) => {
-    console.log(stdout);
-    console.log(stderr);
-    callback(error);
-  });
+    console.log(stdout)
+    console.log(stderr)
+    callback(error)
+  })
 }
 
-gulp.task('prepack', function(cb){
-  webpack('webpack.prepack.config.js', cb);
-});
+const prepackTask = (cb) => {
+  webpack('webpack.prepack.config.js', cb)
+}
 
-gulp.task('webpack-cordova', ['prepack'], function(cb){
-  webpack('webpack.cordova.config.js', cb);
-});
+const webpackCordovaTask = (cb) => {
+  webpack('webpack.cordova.config.js', cb)
+}
 
-gulp.task('dist', ['prepack'], function(cb){
-  webpack('webpack.library.config.js', cb);
-});
+const distTask = (cb) => {
+  webpack('webpack.library.config.js', cb)
+}
 
-gulp.task('remap', ['webpack-cordova'], function () {
+const remapTask = () => {
   return gulp.src(['dist/plugin.min.js', 'dist/www.min.js'])
-  .pipe(insert.prepend(remap))
-  .pipe(gulp.dest('dist'));
-});
+    .pipe(insert.prepend(remap))
+    .pipe(gulp.dest('dist'))
+}
 
-gulp.task('plugin', ['remap'], function () {
+const pluginTask = () => {
   return gulp.src(['dist/plugin.min.js'])
-  .pipe(gulp.dest('src/browser'));
-});
+    .pipe(gulp.dest('src/browser'))
+}
 
-gulp.task('www', ['remap'], function () {
+const wwwTask = () => {
   return gulp.src(['dist/www.min.js'])
-  .pipe(gulp.dest('www'));
-});
+    .pipe(gulp.dest('www'))
+}
 
-gulp.task('default', ['dist', 'plugin', 'www']);
+gulp.task('prepack', prepackTask)
+gulp.task('webpack-cordova', gulp.series(prepackTask, webpackCordovaTask))
+gulp.task('dist', gulp.series('prepack', distTask))
+gulp.task('remap', gulp.series('webpack-cordova', remapTask))
+gulp.task('plugin', gulp.series('remap', pluginTask))
+gulp.task('www', gulp.series('remap', wwwTask))
+gulp.task('default', gulp.series('dist', 'plugin', 'www'))

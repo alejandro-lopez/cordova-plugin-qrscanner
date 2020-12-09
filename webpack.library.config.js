@@ -1,5 +1,4 @@
-const webpack = require('webpack');
-const path = require('path');
+const path = require('path')
 
 module.exports = {
   devtool: 'source-map',
@@ -12,11 +11,5 @@ module.exports = {
     library: 'QRScanner',
     libraryTarget: 'umd',
     umdNamedDefine: true
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      comments: false,
-      sourceMap: true
-    })
-  ]
-};
+  }
+}
